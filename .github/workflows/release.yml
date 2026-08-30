@@ -86,11 +86,31 @@ jobs:
           git push origin HEAD:main
           git push origin "$TAG"
 
+      - name: Create full changelog
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          PREVIOUS_TAG="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || true)"
+          {
+            echo "## Changelog"
+            echo
+            if [ -n "$PREVIOUS_TAG" ]; then
+              git log "$PREVIOUS_TAG..$TAG" --no-merges --pretty=format:'- %s ([%h](https://github.com/dshapp/dsh-kimi-computer-use/commit/%H))'
+              echo
+              echo
+              echo "**Full comparison**: https://github.com/dshapp/dsh-kimi-computer-use/compare/$PREVIOUS_TAG...$TAG"
+            else
+              git log "$TAG" --no-merges --reverse --pretty=format:'- %s ([%h](https://github.com/dshapp/dsh-kimi-computer-use/commit/%H))'
+              echo
+            fi
+          } > release-notes.md
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.version.outputs.tag }}
-        run: gh release create "$TAG" --verify-tag --generate-notes --title "$TAG"
+        run: gh release create "$TAG" --verify-tag --title "$TAG" --notes-file release-notes.md
 
       - name: Write release summary
         env:
