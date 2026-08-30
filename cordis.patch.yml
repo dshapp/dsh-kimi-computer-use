@@ -1,0 +1,17 @@
+# Kimi Computer Use bundle: inserts one generic MCP client row that connects
+# to the officially installed KimiCU.app's stdio MCP server, plus a companion
+# row that registers this package's bundled skill directory. Install and keep
+# KimiCU.app running yourself; this bundle does not download, verify, or
+# manage its background service — see README "What this bundle does and does
+# not do" table.
+- insert:
+    - id: computer-use-kimi-cu
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: cu
+        transport: stdio
+        command: /Applications/KimiCU.app/Contents/MacOS/kimi-cu
+        args: [mcp]
+
+    - id: computer-use-kimi-cu-skills
+      name: 'dsh-kimi-computer-use/skills'

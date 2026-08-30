@@ -1,0 +1,11 @@
+# Minimal keyless composition for loading the bundle's patch against the
+# package-owned fixture MCP server in plugin.spec.ts. Source builtins keep
+# this test independent of a prebuilt lib/ artifact for the harness packages.
+- id: system-prompt
+  name: cordis:kimi-cu-test-system-prompt
+
+- id: tools
+  name: cordis:kimi-cu-test-tools
+
+- id: skills
+  name: cordis:kimi-cu-test-skills
