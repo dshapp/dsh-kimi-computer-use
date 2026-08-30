@@ -1,6 +1,6 @@
 {
   "name": "dsh-kimi-computer-use",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "DeepSeek Harness (DSH) bundle: wires Kimi Computer Use's stdio MCP server through the generic dsh-mcp-client bridge, plus a bundled skill for driving it.",
   "type": "module",
   "license": "MIT",
