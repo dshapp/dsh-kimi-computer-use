@@ -7,11 +7,11 @@
   "author": "",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/freeoption/dsh-kimi-computer-use.git"
+    "url": "git+https://github.com/dshapp/dsh-kimi-computer-use.git"
   },
-  "homepage": "https://github.com/freeoption/dsh-kimi-computer-use#readme",
+  "homepage": "https://github.com/dshapp/dsh-kimi-computer-use#readme",
   "bugs": {
-    "url": "https://github.com/freeoption/dsh-kimi-computer-use/issues"
+    "url": "https://github.com/dshapp/dsh-kimi-computer-use/issues"
   },
   "engines": {
     "node": ">=22.19"

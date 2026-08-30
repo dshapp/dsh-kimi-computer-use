@@ -72,6 +72,19 @@ npm run check   # build then test
 npm pack --dry-run
 ```
 
+## Releases
+
+Every new commit pushed to `main` is validated and automatically released to npm, tagged as `vX.Y.Z`, and published as a GitHub Release with generated release notes. If the version in `package.json` is already published, the workflow increments the patch version automatically.
+
+Publishing uses npm Trusted Publishing (OIDC), not a long-lived npm token. Before the first release, configure an npm Trusted Publisher for package `dsh-kimi-computer-use` with:
+
+- Organization or user: `dshapp`
+- Repository: `dsh-kimi-computer-use`
+- Workflow filename: `release.yml`
+- Environment: `npm`
+
+The repository's GitHub Actions workflow permissions must also allow read and write access so it can push the version commit and tag and create the GitHub Release.
+
 ## License
 
 MIT

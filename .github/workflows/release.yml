@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip ci]')
+    runs-on: ubuntu-latest
+    environment: npm
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate package
+        run: |
+          npm run check
+          npm pack --dry-run
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          LOCAL_VERSION="$(node -p "require('./package.json').version")"
+          PUBLISHED_VERSION="$(npm view "$PACKAGE_NAME" version 2>/dev/null || true)"
+
+          if [ "$LOCAL_VERSION" = "$PUBLISHED_VERSION" ]; then
+            npm version patch --no-git-tag-version
+          fi
+
+          VERSION="$(node -p "require('./package.json').version")"
+          if npm view "$PACKAGE_NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "Version $VERSION already exists on npm; refusing to overwrite it." >&2
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to npm
+        run: npm publish --access public --provenance
+
+      - name: Commit version and create tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(release): $TAG [skip ci]"
+          fi
+          git tag -a "$TAG" -m "$TAG"
+          git push origin HEAD:main
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: gh release create "$TAG" --verify-tag --generate-notes --title "$TAG"
+
+      - name: Write release summary
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          {
+            echo "## Released $TAG"
+            echo "- npm: https://www.npmjs.com/package/dsh-kimi-computer-use/v/$VERSION"
+            echo "- GitHub: https://github.com/dshapp/dsh-kimi-computer-use/releases/tag/$TAG"
+          } >> "$GITHUB_STEP_SUMMARY"
